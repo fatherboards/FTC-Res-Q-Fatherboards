@@ -9,19 +9,19 @@ import com.qualcomm.robotcore.hardware.DcMotorController;
 public class autoFatherBoards extends OpMode
 {
     //// Name the components //////
-    DcMotor    frontRight;
-    DcMotor     frontLeft;
-    DcMotor     backRight;
-    DcMotor      backLeft;
-    DcMotor          tape;
-    Servo        tapeSpin;
-    Servo      leftSlider;
-    Servo  rightSliderArm;
-    Servo     rightSlider;
+    DcMotor frontRight;
+    DcMotor frontLeft;
+    DcMotor backRight;
+    DcMotor backLeft;
+    DcMotor tape;
+    Servo   tapeSpin;
+    Servo   leftSlider;
+    Servo   rightSliderArm;
+    Servo   rightSlider;
     Servo   leftSliderArm;
-    Servo    autoClimbers;
-    Servo          armPos;
-    Servo       bucketPos;
+    Servo   autoClimbers;
+    Servo   armPos;
+    Servo   bucketPos;
 
     /// Initialize variables for telemetry and drive calculations ///
 
@@ -38,22 +38,22 @@ public class autoFatherBoards extends OpMode
     ////Set up all parts and config////
     {
         /// Motors ///
-        frontRight     = hardwareMap.dcMotor.get         ("motor1");
-        backRight      = hardwareMap.dcMotor.get         ("motor2");
-        frontLeft      = hardwareMap.dcMotor.get         ("motor3");
-        backLeft       = hardwareMap.dcMotor.get         ("motor4");
-        tape           = hardwareMap.dcMotor.get           ("tape");
+        frontRight = hardwareMap.dcMotor.get("motor1");
+        backRight  = hardwareMap.dcMotor.get("motor2");
+        frontLeft  = hardwareMap.dcMotor.get("motor3");
+        backLeft   = hardwareMap.dcMotor.get("motor4");
+        tape       = hardwareMap.dcMotor.get("tape");
 
         /// Servos ///
 
-        tapeSpin       = hardwareMap.servo.get         ("tapeSpin");
-        leftSlider     = hardwareMap.servo.get       ("leftSlider");
-        rightSliderArm = hardwareMap.servo.get   ("rightSliderArm");
-        rightSlider    = hardwareMap.servo.get      ("rightSlider");
-        leftSliderArm  = hardwareMap.servo.get    ("leftSliderArm");
-        autoClimbers   = hardwareMap.servo.get     ("autoclimbers");
-        armPos         = hardwareMap.servo.get              ("arm");
-        bucketPos      = hardwareMap.servo.get           ("bucket");
+        tapeSpin       = hardwareMap.servo.get("tapeSpin");
+        leftSlider     = hardwareMap.servo.get("leftSlider");
+        rightSliderArm = hardwareMap.servo.get("rightSliderArm");
+        rightSlider    = hardwareMap.servo.get("rightSlider");
+        leftSliderArm  = hardwareMap.servo.get("leftSliderArm");
+        autoClimbers   = hardwareMap.servo.get("autoclimbers");
+        /*armPos         = hardwareMap.servo.get("arm");
+        bucketPos      = hardwareMap.servo.get("bucket");*/
 
         /// Because somehow running without enocders is with encoders ///
         setDriveMode(DcMotorController.RunMode.RUN_WITHOUT_ENCODERS);
@@ -86,9 +86,9 @@ public class autoFatherBoards extends OpMode
 
     public void status()
     {
-        currentBackRight = backRight.getCurrentPosition();
-        currentBackLeft = backLeft.getCurrentPosition();
-        currentFrontLeft = frontLeft.getCurrentPosition();
+        currentBackRight  = backRight.getCurrentPosition();
+        currentBackLeft   = backLeft.getCurrentPosition();
+        currentFrontLeft  = frontLeft.getCurrentPosition();
         currentFrontRight = frontRight.getCurrentPosition();
     }
 
@@ -108,9 +108,9 @@ public class autoFatherBoards extends OpMode
          has travelled the desired amount of encoder
          ticks as of the last telemetry and status update
           */
-        return currentBackLeft < encoderValue &&
-                currentBackRight < encoderValue &&
-                currentFrontLeft < encoderValue &&
+        return  currentBackLeft   < encoderValue &&
+                currentBackRight  < encoderValue &&
+                currentFrontLeft  < encoderValue &&
                 currentFrontRight < encoderValue;
     }
 
@@ -121,13 +121,25 @@ public class autoFatherBoards extends OpMode
         rightSlider.setPosition   (.5);
         leftSliderArm.setPosition (.5);
         rightSliderArm.setPosition(.5);
-        armPos.setPosition        (.5);
-        bucketPos.setPosition     (.5);
+        /*armPos.setPosition        (.5);
+        bucketPos.setPosition     (.5);*/
 
         if (getRuntime()<10) {
             autoClimbers.setPosition(.5);
         }
-        else if(encode(6000)) {
+        else if(encode(4000)) {
+            power(0.2f, 0.2f);
+            status();
+            telemtery();
+            autoClimbers.setPosition(.5);
+        }
+        else if(encode(5000)) {
+            power(0.2f, -0.2f);
+            status();
+            telemtery();
+            autoClimbers.setPosition(.5);
+        }
+        else if(encode(7000)) {
             power(0.2f, 0.2f);
             status();
             telemtery();
@@ -140,7 +152,7 @@ public class autoFatherBoards extends OpMode
         else {
             power(0,0);
             /// After parking, move the climber dropping mechanism for 3 seconds to (hopefully) score ///
-            if(getRuntime() - timeAfterDrive < 3) { autoClimbers.setPosition (1); }
+            if(getRuntime() - timeAfterDrive < 3) { autoClimbers.setPosition(1); }
             else                                  { autoClimbers.setPosition(.5); }
             status();
             telemtery();

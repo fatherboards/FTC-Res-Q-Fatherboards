@@ -1,13 +1,10 @@
 package com.qualcomm.ftcrobotcontroller.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-import java.io.IOException;
 
 /**
  * Created by Zip on 10/8/2015.
@@ -44,25 +41,22 @@ public class Codemobile extends OpMode {
         autoClimbers   = hardwareMap.servo.get     ("autoclimbers");
         armPos         = hardwareMap.servo.get              ("arm");
         bucketPos      = hardwareMap.servo.get           ("bucket");
-        frontright.setDirection         (DcMotor.Direction.FORWARD);
-        backright.setDirection          (DcMotor.Direction.FORWARD);
-        frontleft.setDirection          (DcMotor.Direction.REVERSE);
-        backleft.setDirection           (DcMotor.Direction.REVERSE);
     }
 
 
-    public void power(float right, float left) {
-        frontright.setPower(right);
-        backright.setPower (right);
-        frontleft.setPower  (left);
-        backleft.setPower   (left);
-    }
-
-    public void motorControl(DcMotor motor, boolean cond1, boolean cond2)
-    {
-        if(cond1)      { motor.setPower (1); }
-        else if(cond2) { motor.setPower(-1); }
-        else           { motor.setPower (0); }
+    public void power(float right, float left, boolean forwards) {
+        if(forwards) {
+            frontright.setPower(right);
+            backright.setPower(right);
+            frontleft.setPower(left);
+            backleft.setPower(left);
+        }
+        else {
+            frontright.setPower(left);
+            backright.setPower(left);
+            frontleft.setPower(right);
+            backleft.setPower(right);
+        }
     }
 
     public void servoControl(Servo servo, boolean cond1, boolean cond2)
@@ -78,13 +72,14 @@ public class Codemobile extends OpMode {
         /// [GAMEPAD 1] ///
 
         float rightMotorPower = gamepad1.right_stick_y;
-        float leftMotorPower  =  gamepad1.left_stick_y;
+        float leftMotorPower  = -gamepad1.left_stick_y;
         rightMotorPower = Range.clip(rightMotorPower, -1, 1);
         leftMotorPower  = Range.clip (leftMotorPower, -1, 1);
 
-        power(rightMotorPower, leftMotorPower);
-
-        motorControl(tape, gamepad1.dpad_down, gamepad1.dpad_up);
+        power(rightMotorPower, leftMotorPower, frontright.getDirection()==DcMotor.Direction.FORWARD);
+        if(gamepad1.dpad_down) tape.setPower(1);
+        else if(gamepad1.dpad_up) tape.setPower(-1);
+        else tape.setPower(0);
         servoControl          (tapeSpin, gamepad1.x, gamepad1.y);
         servoControl      (autoClimbers, gamepad1.a, gamepad1.b);
 
@@ -93,15 +88,15 @@ public class Codemobile extends OpMode {
         if(gamepad1.right_bumper && frontright.getDirection()==DcMotor.Direction.FORWARD) {
             frontright.setDirection(DcMotor.Direction.REVERSE);
             backright.setDirection (DcMotor.Direction.REVERSE);
-            frontleft.setDirection (DcMotor.Direction.FORWARD);
-            backleft.setDirection  (DcMotor.Direction.FORWARD);
+            frontleft.setDirection (DcMotor.Direction.REVERSE);
+            backleft.setDirection  (DcMotor.Direction.REVERSE);
         }
 
         else if(gamepad1.right_bumper && frontright.getDirection()==DcMotor.Direction.REVERSE) {
             frontright.setDirection(DcMotor.Direction.FORWARD);
             backright.setDirection (DcMotor.Direction.FORWARD);
-            frontleft.setDirection (DcMotor.Direction.REVERSE);
-            backleft.setDirection  (DcMotor.Direction.REVERSE);
+            frontleft.setDirection (DcMotor.Direction.FORWARD);
+            backleft.setDirection  (DcMotor.Direction.FORWARD);
         }
             /// [/CHANGE FRONT OF ROBOT] ///
 
