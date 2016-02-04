@@ -46,10 +46,6 @@ public class GeorgeMobile extends OpMode {
     }
 
     public void powerMotors(float right, float left) {
-        frontRight.setDirection(DcMotor.Direction.REVERSE);
-        backRight.setDirection(DcMotor.Direction.REVERSE);
-        frontLeft.setDirection(DcMotor.Direction.FORWARD);
-        backLeft.setDirection(DcMotor.Direction.FORWARD);
         frontRight.setPower(right);
         backRight.setPower(right);
         frontLeft.setPower(left);
