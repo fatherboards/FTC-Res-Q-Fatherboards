@@ -18,6 +18,7 @@ public class GeorgeMobile extends OpMode {
     Servo sliderRight;
     Servo armLeft;
     Servo armRight;
+    Servo autoClimbers;
 
     public void init() {
         frontRight = hardwareMap.dcMotor.get("frontRight");
@@ -30,7 +31,7 @@ public class GeorgeMobile extends OpMode {
         sliderRight = hardwareMap.servo.get("sliderRight");
         armLeft = hardwareMap.servo.get("armLeft");
         armRight = hardwareMap.servo.get("armRight");
-
+        autoClimbers = hardwareMap.servo.get("autoClimbers");
     }
 
     public void servoControl(Servo servo, boolean cond1, boolean cond2) {
@@ -45,7 +46,7 @@ public class GeorgeMobile extends OpMode {
         else           { motor.setPower (0); }
     }
 
-    public void powerMotors(float right, float left) {
+    public void powerMotors(double right, double left) {
         frontRight.setPower(right);
         backRight.setPower(right);
         frontLeft.setPower(left);
@@ -56,16 +57,17 @@ public class GeorgeMobile extends OpMode {
 
         /// [GAMEPAD 1] ///
 
-        float rightPower = gamepad1.right_stick_y;
-        float leftPower = -gamepad1.left_stick_y;
+        double rightPower = -gamepad1.right_stick_y;
+        double leftPower = gamepad1.left_stick_y;
         powerMotors(rightPower,leftPower);
-        motorControl(tape, gamepad1.dpad_up, gamepad1.dpad_down);
+        motorControl(tape, gamepad1.dpad_down, gamepad1.dpad_up);
         servoControl(tapeSpin, gamepad1.x, gamepad1.y);
+        servoControl(autoClimbers, gamepad1.a, gamepad1.b);
 
         /// [GAMEPAD 2] ///
 
-        servoControl(sliderLeft, gamepad2.left_stick_y > .1, gamepad2.left_stick_y < -.1);
-        servoControl(sliderRight, gamepad2.right_stick_y > .1, gamepad2.right_stick_y < -.1);
+        servoControl(sliderLeft, gamepad2.left_bumper, gamepad2.right_bumper);
+        servoControl(sliderRight, gamepad2.x, gamepad2.y);
         servoControl(armLeft, gamepad2.dpad_up, gamepad2.dpad_down);
         servoControl(armRight, gamepad2.a, gamepad2.b);
     }

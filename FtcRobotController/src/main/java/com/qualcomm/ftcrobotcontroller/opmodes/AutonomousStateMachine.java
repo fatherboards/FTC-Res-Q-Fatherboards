@@ -17,33 +17,40 @@ public class AutonomousStateMachine extends OpMode {
     Servo armLeft;
     Servo armRight;
     Servo autoClimbers;
-    RobotStatus status;
+    RobotStatus status = new RobotStatus(0,0,0,0);
     double targetTime;
     int COMMAND_NUMBER = 0;
     int LOOP_COUNT = 0;
+    int targetEncoderValue;
     ArrayList<Command> commandList = new ArrayList<Command>();
     @Override
     public void init() { status.initRobot();
         new Command(States.IDLING, 10000.0);
-        new Command(States.DRIVING, 3000);
-        new Command(States.TURNING_RIGHT, 1000);
-        new Command(States.BACKING, 2000);
+        new Command(States.DRIVING, 5000);
+        new Command(States.TURNING_LEFT, 1000);
+        new Command(States.DRIVING, 1000);
         new Command(States.DUMPING_CLIMBERS, 1000);
         new Command(States.STOPPED, 0);
     }
     @Override
     public void loop() {
+        int prevCommandNumber = COMMAND_NUMBER;
         doCommand(commandList.get(COMMAND_NUMBER));
+        if(COMMAND_NUMBER > prevCommandNumber) {
+            status.setDriveMode(DcMotorController.RunMode.RESET_ENCODERS);
+            commandList.get(COMMAND_NUMBER).updateVals();
+        }
     }
     @Override
     public void stop() {
-
+        status.setDriveMode(DcMotorController.RunMode.RESET_ENCODERS);
     }
     public enum States {IDLING,AWAITING_COMMAND, DRIVING, BACKING, TURNING_RIGHT, TURNING_LEFT, DUMPING_CLIMBERS, STOPPED}
     public void doCommand(Command command) {
         switch(command.state) {
             case IDLING:
                 status.currentState = "IDLING";
+                targetTime = command.milliseconds;
                 command.doIdling();
                 break;
             case AWAITING_COMMAND:
@@ -51,25 +58,30 @@ public class AutonomousStateMachine extends OpMode {
                 break;
             case DRIVING:
                 status.currentState = "DRIVING";
+                targetEncoderValue = command.encoderValue;
                 command.doDriving();
                 break;
             case BACKING:
                 status.currentState = "BACKING";
+                targetEncoderValue = command.encoderValue;
                 command.doBacking();
                 break;
             case TURNING_RIGHT:
                 status.currentState = "TURNING_RIGHT";
+                targetEncoderValue = command.encoderValue;
                 command.doTurningRight();
                 break;
             case TURNING_LEFT:
                 status.currentState = "TURNING_LEFT";
+                targetEncoderValue = command.encoderValue;
                 command.doTurningLeft();
                 break;
             case STOPPED:
                 status.currentState = "STOPPED";
-                status.setDriveMode(DcMotorController.RunMode.RESET_ENCODERS);
                 break;
             case DUMPING_CLIMBERS:
+                status.currentState = "DUMPING_CLIMBERS";
+                targetTime = command.milliseconds;
                 command.doDumpingClimbers();
                 break;
         }
@@ -78,30 +90,28 @@ public class AutonomousStateMachine extends OpMode {
     }
     private class Command {
         public States state;
-        public int targetEncoderValue;
         public int milliseconds;
+        int encoderValue;
         public Command(States state, double milliseconds) {
             this.state = state;
-            this.targetEncoderValue = 0;
+            this.encoderValue = 0;
             this.milliseconds = (int) milliseconds;
-            targetTime = getRuntime()+milliseconds;
             commandList.add(this);
         }
         public Command(States state, int encoderValue) {
             this.state = state;
-            this.targetEncoderValue = (status.currentFrontRight + status.currentBackRight + status.currentFrontLeft + status.currentBackLeft)/4 + encoderValue;
+            this.encoderValue= (status.currentFrontRight  + status.currentBackRight + status.currentBackLeft)/3 + encoderValue;
             this.milliseconds = 0;
             commandList.add(this);
         }
         public void doIdling() {
             if(!(getRuntime()< targetTime)) {
+                COMMAND_NUMBER++;
                 doAwaitingNext();
             }
         }
         public void doAwaitingNext() {
-            if(!(getRuntime() < targetTime)) {
-                COMMAND_NUMBER++;
-            }
+
         }
         public void doDriving() {
             if (lessThanTarget()) {
@@ -109,6 +119,7 @@ public class AutonomousStateMachine extends OpMode {
             }
             else {
                 power(0,0);
+                COMMAND_NUMBER++;
                 doAwaitingNext();
             }
         }
@@ -118,6 +129,7 @@ public class AutonomousStateMachine extends OpMode {
             }
             else {
                 power(0,0);
+                COMMAND_NUMBER++;
                 doAwaitingNext();
             }
         }
@@ -127,6 +139,7 @@ public class AutonomousStateMachine extends OpMode {
             }
             else {
                 power(0,0);
+                COMMAND_NUMBER++;
                 doAwaitingNext();
             }
         }
@@ -136,20 +149,22 @@ public class AutonomousStateMachine extends OpMode {
             }
             else {
                 power(0, 0);
+                COMMAND_NUMBER++;
                 doAwaitingNext();
             }
         }
         public void doDumpingClimbers() {
             if(getRuntime() < targetTime) {
-                autoClimbers.setPosition(.7);
+                autoClimbers.setPosition(.2);
             }
             else {
                 autoClimbers.setPosition(.5);
+                COMMAND_NUMBER++;
                 doAwaitingNext();
             }
         }
         private boolean lessThanTarget() {
-            return (status.currentFrontRight + status.currentBackRight + status.currentFrontLeft + status.currentBackLeft)/4 < targetEncoderValue;
+            return (status.currentFrontRight +status.currentBackRight)/2 < targetEncoderValue;
         }
         private void power(float right, float left) {
             frontRight.setDirection(DcMotor.Direction.REVERSE);
@@ -160,6 +175,10 @@ public class AutonomousStateMachine extends OpMode {
             backRight.setPower (right);
             frontLeft.setPower(left);
             backLeft.setPower(left);
+        }
+        private void updateVals() {
+            this.encoderValue+= (status.currentBackRight+status.currentFrontRight)/2;
+            this.milliseconds+= getRuntime();
         }
     }
     private class RobotStatus {
@@ -206,12 +225,15 @@ public class AutonomousStateMachine extends OpMode {
             }
         }
         public void telemetryData() {
-            telemetry.addData("Motor front right", "val: " + currentFrontRight);
-            telemetry.addData("Motor front left", "val: " + currentFrontLeft);
-            telemetry.addData("Motor back right", "val: " + currentBackRight);
-            telemetry.addData("Motor back left", "val: " + currentBackLeft);
-            telemetry.addData("Time elapsed", "val: " + getRuntime());
-            telemetry.addData("State:", currentState);
+            telemetry.addData("Motor front right",currentFrontRight);
+            telemetry.addData("Motor front left", currentFrontLeft);
+            telemetry.addData("Motor back right", currentBackRight);
+            telemetry.addData("Motor back left", currentBackLeft);
+            telemetry.addData("Time elapsed", getRuntime());
+            telemetry.addData("State", currentState);
+            telemetry.addData("Target Time", targetTime);
+            telemetry.addData("Target Encoders", targetEncoderValue);
+
         }
         public void updateEncoders() {
             currentFrontRight += Math.abs(frontRight.getCurrentPosition() - currentFrontRight);
