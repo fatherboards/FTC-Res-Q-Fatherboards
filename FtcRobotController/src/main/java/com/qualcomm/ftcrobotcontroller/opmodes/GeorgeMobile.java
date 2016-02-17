@@ -19,6 +19,7 @@ public class GeorgeMobile extends OpMode {
     Servo armLeft;
     Servo armRight;
     Servo autoClimbers;
+    Servo hang;
 
     public void init() {
         frontRight = hardwareMap.dcMotor.get("frontRight");
@@ -32,6 +33,7 @@ public class GeorgeMobile extends OpMode {
         armLeft = hardwareMap.servo.get("armLeft");
         armRight = hardwareMap.servo.get("armRight");
         autoClimbers = hardwareMap.servo.get("autoClimbers");
+        hang = hardwareMap.servo.get("hang");
     }
 
     public void servoControl(Servo servo, boolean cond1, boolean cond2) {
@@ -66,9 +68,10 @@ public class GeorgeMobile extends OpMode {
 
         /// [GAMEPAD 2] ///
 
-        servoControl(sliderLeft, gamepad2.left_bumper, gamepad2.right_bumper);
-        servoControl(sliderRight, gamepad2.x, gamepad2.y);
-        servoControl(armLeft, gamepad2.dpad_up, gamepad2.dpad_down);
-        servoControl(armRight, gamepad2.a, gamepad2.b);
+        servoControl(sliderRight, gamepad2.dpad_up, gamepad2.dpad_down);
+        servoControl(sliderLeft, gamepad2.a, gamepad2.y);
+        servoControl(armRight, gamepad2.dpad_right, gamepad2.dpad_left);
+        servoControl(armLeft, gamepad2.x, gamepad2.b);
+        servoControl(hang,gamepad2.right_bumper,gamepad2.left_bumper);
     }
 }

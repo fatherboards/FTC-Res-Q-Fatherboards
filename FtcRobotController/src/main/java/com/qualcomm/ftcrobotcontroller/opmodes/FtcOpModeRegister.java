@@ -49,6 +49,6 @@ public class FtcOpModeRegister implements OpModeRegister {
     manager.register("Codemobile", Codemobile.class);
     manager.register("Autonomous", autoFatherBoards.class);
     manager.register("GeorgeMobile", GeorgeMobile.class);
-    manager.register("AutonomousStateMachine", AutonomousStateMachine.class);
+    manager.register("AutonomousStateMachine", AutonomousPostSeason.class);
   }
 }
