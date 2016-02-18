@@ -13,7 +13,6 @@ public class Command  {
     public static int currentCommandNumber = 0;
     public States currentState;
     public boolean continueCommand;
-    public static ElapsedTime time;
     public int targetTime;
     public int targetEncoders;
     public Command(States state) {
@@ -28,10 +27,11 @@ public class Command  {
         }
     }
     public void setTargetTime(int targetTime) {
-        time.reset();
         this.targetTime = targetTime;
+        this.targetEncoders = 0;
     }
     public void setTargetEncoders(int targetEncoders, DcMotor motor) {
         this.targetEncoders = motor.getCurrentPosition() + targetEncoders;
+        this.targetTime = 0;
     }
 }

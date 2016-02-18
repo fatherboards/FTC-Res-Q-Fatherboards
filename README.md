@@ -18,6 +18,7 @@ For technical questions regarding the SDK, please visit the FTC Technology forum
 
   http://ftcforum.usfirst.org/forumdisplay.php?156-FTC-Technology
 
+<<<<<<< HEAD
 **************************************************************************************
 
 Release 16.01.04
@@ -95,6 +96,9 @@ Release 15.11.04.001
 T. Eng
 November 5, 2015
  
+=======
+
+>>>>>>> b790ba3e1cd11886f43dd11ee30606d8f9db762f
 **************************************************************************************
 
 Release 15.10.06.002

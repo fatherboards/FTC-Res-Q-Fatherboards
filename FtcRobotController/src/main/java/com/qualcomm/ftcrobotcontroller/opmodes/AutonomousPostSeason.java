@@ -21,16 +21,12 @@ public class AutonomousPostSeason extends OpMode implements RobotStatus{
     Servo armRight;
     Servo autoClimbers;
     Servo hang;
-
-    public void setUpCommands() {
+    int loopAmounts = 0;
+    public void setUpCommands()  {
         commandList.add(new Command(States.DRIVING));
-        commandList.get(0).setTargetTime(3);
         commandList.add(new Command(States.IDLING));
-        commandList.get(1).setTargetTime(5);
         commandList.add(new Command(States.TURNING_RIGHT));
-        commandList.get(2).setTargetEncoders(1000, frontLeft);
         commandList.add(new Command(States.DUMPING_CLIMBERS));
-        commandList.get(3).setTargetTime(3);
         commandList.add(new Command(States.STOPPED));
     }
 
@@ -39,8 +35,8 @@ public class AutonomousPostSeason extends OpMode implements RobotStatus{
     }
 
     public static void setDriveMode(DcMotorController.RunMode mode, DcMotor motor) {
-        if(motor.getChannelMode() != mode) {
-            motor.setChannelMode(mode);
+        if(motor.getMode() != mode) {
+            motor.setMode(mode);
         }
     }
 
@@ -64,45 +60,60 @@ public class AutonomousPostSeason extends OpMode implements RobotStatus{
         initServos(armRight);
         initServos(autoClimbers);
         initServos(hang);
-        resetEncoders();
     }
+    public void telemetryRobotStatus() {
+        telemetryValues(commandList.get(Command.currentCommandNumber).currentState, "State");
+        telemetryValues(time, "Current RunTime For Command");
+        telemetryValues(commandList.get(Command.currentCommandNumber).targetTime, "Target Time");
+        telemetryValues(commandList.get(Command.currentCommandNumber).targetEncoders, "Target Time");
+        telemetryValues(frontRight.getCurrentPosition(), "Front Right Motor");
+        telemetryValues(frontLeft.getCurrentPosition(), "Front Left Motor");
+        telemetryValues(backRight.getCurrentPosition(), "Back Right Motor");
+        telemetryValues(backLeft.getCurrentPosition(), "Back Left Motor");
 
+    }
     @Override
     public void init() {
-        setUpCommands();
         initRobotHardware();
+        resetEncoders();
+        setUpCommands();
     }
 
     @Override
     public void loop() {
-        telemetryValues(frontRight, "Front Right Motor");
-        telemetryValues(frontLeft, "Front Left Motor");
-        telemetryValues(backRight, "Back Right Motor");
-        telemetryValues(backLeft, "Back Left Motor");
-        telemetryValues(Command.time.time(), "Current RunTime");
-        telemetryValues(commandList.get(Command.currentCommandNumber).currentState, "State");
-        if(Command.currentCommandNumber == 0) {
-            runThroughCommand(commandList.get(Command.currentCommandNumber), Command.time.time() < commandList.get(Command.currentCommandNumber).targetTime);
-            powerMotors(1,1);
-            initServos(autoClimbers);
-        }
-        else if(Command.currentCommandNumber == 1) {
-            runThroughCommand(commandList.get(Command.currentCommandNumber), Command.time.time() < commandList.get(Command.currentCommandNumber).targetTime);
-            powerMotors(0,0);
-            initServos(autoClimbers);
-        }
-        else if(Command.currentCommandNumber == 2) {
-            runThroughCommand(commandList.get(Command.currentCommandNumber), frontLeft.getCurrentPosition() < commandList.get(Command.currentCommandNumber).targetEncoders);
-            powerMotors(-1,1);
-            initServos(autoClimbers);
-        }
-        else if(Command.currentCommandNumber == 3) {
-            runThroughCommand(commandList.get(Command.currentCommandNumber), Command.time.time() < commandList.get(Command.currentCommandNumber).targetTime);
-            powerMotors(0,0);
-            autoClimbers.setPosition(0);
-        }
-        else {
-            initServos(autoClimbers);
+        telemetryRobotStatus();
+        switch(Command.currentCommandNumber) {
+            case 0:
+                if(loopAmounts==0) { commandList.get(0).setTargetTime(3); resetStartTime(); }
+                runThroughCommand(commandList.get(0), time < commandList.get(0).targetTime);
+                powerMotors(1, 1);
+                initServos(autoClimbers);
+                loopAmounts++;
+                break;
+            case 1:
+                if(loopAmounts==0) { commandList.get(1).setTargetTime(5); resetStartTime(); }
+                runThroughCommand(commandList.get(1), time < commandList.get(1).targetTime);
+                powerMotors(0, 0);
+                initServos(autoClimbers);
+                loopAmounts++;
+                break;
+            case 2:
+                if(loopAmounts==0) { commandList.get(2).setTargetEncoders(1000, frontLeft); resetEncoders(); }
+                runThroughCommand(commandList.get(2), frontLeft.getCurrentPosition() < commandList.get(2).targetEncoders);
+                powerMotors(-1, 1);
+                initServos(autoClimbers);
+                loopAmounts++;
+                break;
+            case 3:
+                if(loopAmounts==0) { commandList.get(3).setTargetTime(3); resetStartTime(); }
+                runThroughCommand(commandList.get(3), time < commandList.get(3).targetTime);
+                powerMotors(0, 0);
+                autoClimbers.setPosition(0);
+                loopAmounts++;
+                break;
+            default:
+                initServos(autoClimbers);
+                break;
         }
     }
 
@@ -121,6 +132,7 @@ public class AutonomousPostSeason extends OpMode implements RobotStatus{
     public void runThroughCommand(Command command, boolean commandExpression) {
         command.continueCommand(commandExpression);
         command.doCommand();
+        if(!command.continueCommand) loopAmounts=-1;
     }
     public void powerMotors(double rightPower, double leftPower) {
         frontRight.setPower(rightPower);

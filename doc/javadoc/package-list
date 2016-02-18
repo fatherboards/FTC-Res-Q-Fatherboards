@@ -1,4 +1,8 @@
 com.qualcomm.ftccommon
+<<<<<<< HEAD
+=======
+com.qualcomm.hardware
+>>>>>>> b790ba3e1cd11886f43dd11ee30606d8f9db762f
 com.qualcomm.robotcore.eventloop
 com.qualcomm.robotcore.eventloop.opmode
 com.qualcomm.robotcore.exception
